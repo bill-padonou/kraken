@@ -1,0 +1,22 @@
+FROM python:3.12-slim
+
+# Utilisateur non-root
+RUN useradd --create-home --uid 1000 app
+
+# Répertoire de travail
+WORKDIR /app
+
+# Répertoire de sortie des fichiers
+RUN mkdir -p /output && chown app:app /output
+
+# Installation des dépendances
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copie du code source
+COPY --chown=app:app . .
+
+# Exécution avec un utilisateur non-root
+USER app
+
+CMD ["python", "-m", "app.main"]
