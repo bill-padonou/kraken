@@ -6,7 +6,8 @@ RUN useradd --create-home --uid 1000 app
 
 # Répertoires de travail et de sortie
 WORKDIR /app
-RUN mkdir -p /output && chown app:app /output
+RUN mkdir -p /output \
+    && chown -R app:app /app /output
 
 # Instructions exécutées lors de la construction
 # de l'image du développeur

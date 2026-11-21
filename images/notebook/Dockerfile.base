@@ -1,0 +1,33 @@
+FROM python:3.12-slim
+
+# Création de l'utilisateur non-root
+RUN useradd --create-home --uid 1000 app
+
+# Répertoires de travail et de sortie
+WORKDIR /app
+RUN mkdir -p /output \
+    && chown -R app:app /app /output
+
+# Installation de Papermill et du kernel Python
+RUN pip install --no-cache-dir \
+    papermill==2.6.0 \
+    ipykernel==6.29.5 \
+    && python -m ipykernel install \
+        --prefix=/usr/local \
+        --name python3 \
+        --display-name "Python 3"
+
+# Instructions exécutées lors de la construction
+# de l'image du développeur
+ONBUILD COPY --chown=app:app . .
+ONBUILD USER root
+ONBUILD RUN if [ -f requirements.txt ]; then \
+    pip install --no-cache-dir -r requirements.txt; \
+    fi
+ONBUILD USER app
+
+# Utilisateur par défaut
+USER app
+
+# Point d'entrée par défaut
+CMD ["papermill", "-k", "python3", "/app/main.ipynb", "/output/main.executed.ipynb"]

@@ -3,11 +3,10 @@ FROM python:3.12-slim
 # Utilisateur non-root
 RUN useradd --create-home --uid 1000 app
 
-# Répertoire de travail
+# Répertoires de travail et de sortie
 WORKDIR /app
-
-# Répertoire de sortie des fichiers
-RUN mkdir -p /output && chown app:app /output
+RUN mkdir -p /output \
+    && chown -R app:app /app /output
 
 # Installation des dépendances
 COPY requirements.txt .

@@ -1,0 +1,44 @@
+name: publish-base-images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "images/**"
+      - ".github/workflows/publish-base-images.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish base images
+        run: |
+          for type in python dbt notebook; do
+            IMAGE="ghcr.io/${{ github.repository_owner }}/kraken-${type}"
+
+            docker build \
+              -f "images/${type}/Dockerfile.base" \
+              -t "${IMAGE}:latest" \
+              -t "${IMAGE}:${GITHUB_SHA}" \
+              --label org.opencontainers.image.revision=${GITHUB_SHA} \
+              --label org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} \
+              .
+
+            docker push "${IMAGE}:latest"
+            docker push "${IMAGE}:${GITHUB_SHA}"
+          done
